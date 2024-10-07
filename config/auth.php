@@ -40,6 +40,10 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'api' => [
+            'driver' => 'jwt',  // Asegúrate de usar 'jwt' como driver para el guard 'api'
+            'provider' => 'users',
+        ],
     ],
 
     /*

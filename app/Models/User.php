@@ -23,6 +23,7 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
+        'google2fa_secret', // Asegúrate de que este campo sea fillable
     ];
 
     /**

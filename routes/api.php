@@ -3,27 +3,18 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
-*/
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// Rutas de autenticación
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
+
+// Ruta para habilitar MFA desde el perfil del usuario
+Route::middleware('auth:api')->post('enable-mfa', [AuthController::class, 'enableMFA']);
+
+// Ruta para verificar el código MFA
 Route::post('verify-mfa', [AuthController::class, 'verifyMFA']);
+
+// Rutas protegidas por autenticación JWT y MFA
 Route::middleware('jwt')->group(function () {
     Route::get('user-profile', [AuthController::class, 'profile']);
 });
-Route::middleware(['auth', '2fa'])->group(function () {
-    // rutas protegidas por autenticación y 2FA
-});
-

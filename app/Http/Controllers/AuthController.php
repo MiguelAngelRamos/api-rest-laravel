@@ -9,7 +9,7 @@ use PragmaRX\Google2FA\Google2FA;
 
 class AuthController extends Controller
 {
-    // Método para registrar un nuevo usuario
+    // Método para registrar un nuevo usuario y devolver el código QR
     public function register(Request $request)
     {
         // Validar los datos
@@ -23,7 +23,7 @@ class AuthController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password), // Encriptar la contraseña
+            'password' => Hash::make($request->password),
         ]);
 
         // Generar clave secreta para Google2FA
@@ -31,28 +31,19 @@ class AuthController extends Controller
         $user->google2fa_secret = $google2fa->generateSecretKey();
         $user->save();
 
-        return response()->json([
-            'message' => 'User registered successfully',
-            'user' => $user
-        ], 201);
-    }
-
-    // Método para generar el código QR para Google Authenticator
-    public function getQRCode(Request $request)
-    {
-        $user = auth()->user(); // Obtener el usuario autenticado
-
-        // Generar código QR para Google Authenticator
-        $google2fa = new Google2FA();
+        // Generar código QR
         $qrCodeUrl = $google2fa->getQRCodeUrl(
             config('app.name'),
             $user->email,
             $user->google2fa_secret
         );
 
+        // Devolver la información del usuario y el código QR en la respuesta
         return response()->json([
-            'qrCodeUrl' => $qrCodeUrl,
-        ]);
+            'message' => 'User registered successfully',
+            'user' => $user,
+            'qrCodeUrl' => $qrCodeUrl
+        ], 201);
     }
 
     // Método para iniciar sesión
@@ -64,6 +55,17 @@ class AuthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        $user = auth()->user();
+
+        // Verificar si el usuario tiene MFA habilitado
+        if ($user->google2fa_secret) {
+            return response()->json([
+                'message' => 'MFA required',
+                'mfa_required' => true
+            ]);
+        }
+
+        // Si no tiene MFA, se responde con el token JWT directamente
         return $this->respondWithToken($token);
     }
 
@@ -78,7 +80,9 @@ class AuthController extends Controller
         $valid = $google2fa->verifyKey($user->google2fa_secret, $request->otp);
 
         if ($valid) {
-            return response()->json(['message' => 'MFA verified successfully'], 200);
+            // Si MFA es correcto, generamos y devolvemos el token JWT
+            $token = auth()->refresh(); // Refrescamos o generamos el token JWT
+            return $this->respondWithToken($token);
         }
 
         return response()->json(['error' => 'Invalid MFA code'], 401);

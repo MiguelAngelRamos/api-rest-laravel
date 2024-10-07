@@ -23,3 +23,7 @@ Route::post('verify-mfa', [AuthController::class, 'verifyMFA']);
 Route::middleware('jwt')->group(function () {
     Route::get('user-profile', [AuthController::class, 'profile']);
 });
+Route::middleware(['auth', '2fa'])->group(function () {
+    // rutas protegidas por autenticación y 2FA
+});
+

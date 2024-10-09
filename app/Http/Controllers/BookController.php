@@ -151,7 +151,7 @@ class BookController extends Controller
         // Si es el propietario, devolver toda la información, incluyendo el campo secreto
         return response()->json($book);
     }
-    /*public function show($id)
+   /* public function show($id)
     {
         $book = Book::findOrFail($id); // Encuentra el libro por su ID
 
@@ -169,6 +169,6 @@ class BookController extends Controller
 
         // Si es el dueño, devolvemos todos los detalles, incluido el campo 'secret'
         return response()->json($book);
-    }*/
-
+    }
+  */
 }

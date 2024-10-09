@@ -64,7 +64,7 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'jwt' => \PHPOpenSourceSaver\JWTAuth\Http\Middleware\Authenticate::class,
-        '2fa' => \PragmaRX\Google2FALaravel\Middleware::class
-
+        '2fa' => \PragmaRX\Google2FALaravel\Middleware::class,
+        'login.throttle' => \App\Http\Middleware\LoginThrottle::class // Aquí añadimos el middleware personalizado
     ];
 }

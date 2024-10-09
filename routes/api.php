@@ -7,7 +7,10 @@ use App\Http\Controllers\BookController;
 
 // Rutas de autenticación
 Route::post('register', [AuthController::class, 'register']);
-Route::post('login', [AuthController::class, 'login']);
+// Route::post('login', [AuthController::class, 'login']);
+// Route::post('login', [AuthController::class, 'login'])->middleware('throttle:5,1'); // 5 intentos en 1 minuto
+Route::post('login', [AuthController::class, 'login'])->middleware('login.throttle');
+
 
 // Ruta para habilitar MFA desde el perfil del usuario
 Route::middleware('auth:api')->post('enable-mfa', [AuthController::class, 'enableMFA']);

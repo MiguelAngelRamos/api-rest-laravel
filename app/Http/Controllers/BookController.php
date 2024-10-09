@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Book;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 /**
  * @OA\Tag(
  *     name="Libros",
@@ -124,7 +125,50 @@ class BookController extends Controller
      */
     public function show($id)
     {
-        $book = Book::findOrFail($id);  // Cualquier usuario puede acceder
+        // Obtener el usuario autenticado
+        $user = auth('api')->user();
+        Log::info('User ID: ' . $user->id . ' está intentando acceder');
+        if (!$user) {
+            return response()->json(['error' => 'User not authenticated'], 401);
+        }
+
+        // Registrar en los logs el ID del usuario autenticado y el ID del libro
+        Log::info('User ID: ' . $user->id . ' está intentando acceder al libro ID: ' . $id);
+
+        // Buscar el libro
+        $book = Book::findOrFail($id);
+
+        // Verificar si el usuario autenticado es el dueño del libro
+        if ((int)$book->user_id !== $user->id) {
+            // Registrar en los logs que el acceso fue denegado
+            Log::info('Acceso denegado. Usuario ID: ' . $user->id . ' intentó acceder al libro ID: ' . $id);
+
+            return response()->json([
+                'error' => 'Unauthorized access to book information'
+            ], 403); // Prohibir acceso
+        }
+
+        // Si es el propietario, devolver toda la información, incluyendo el campo secreto
         return response()->json($book);
     }
+    /*public function show($id)
+    {
+        $book = Book::findOrFail($id); // Encuentra el libro por su ID
+
+        // Verificar si el usuario autenticado es el dueño del libro
+        if (auth()->id() !== $book->user_id) {
+            // Si no es el dueño, devolvemos solo la información pública (sin el campo 'secret')
+            return response()->json([
+                'id' => $book->id,
+                'user_id' => $book->user_id,
+                'title' => $book->title,
+                'created_at' => $book->created_at,
+                'updated_at' => $book->updated_at,
+            ]);
+        }
+
+        // Si es el dueño, devolvemos todos los detalles, incluido el campo 'secret'
+        return response()->json($book);
+    }*/
+
 }

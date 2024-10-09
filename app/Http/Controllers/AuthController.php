@@ -35,7 +35,7 @@ class AuthController extends Controller
     }
 
     // Método para iniciar sesión
-// Método para iniciar sesión
+
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
@@ -61,9 +61,7 @@ class AuthController extends Controller
         // Si no tiene MFA habilitado, se responde con el token JWT directamente
         return $this->respondWithToken($token);
     }
-
     // Método para activar MFA desde el perfil del usuario
-// Método para activar MFA desde el perfil del usuario
     public function enableMFA(Request $request)
     {
         $user = auth()->user();

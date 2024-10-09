@@ -4,7 +4,7 @@
 
 Este proyecto implementa una API REST en **Laravel** que utiliza **JWT (JSON Web Token)** para la autenticación de usuarios, con soporte para **Autenticación Multifactor (MFA)** utilizando **Google Authenticator**. Además, se conecta a una base de datos **SQL Server**.
 
-Los usuarios pueden registrarse, iniciar sesión, activar MFA escaneando un código QR, y, posteriormente, utilizar MFA al iniciar sesión.
+Los usuarios pueden registrarse, iniciar sesión, activar MFA escaneando un código QR y, posteriormente, utilizar MFA al iniciar sesión.
 
 ## Requerimientos Previos
 
@@ -12,6 +12,7 @@ Los usuarios pueden registrarse, iniciar sesión, activar MFA escaneando un cód
 - **Composer**
 - **SQL Server**
 - **Laravel 10**
+- **Docker y Docker Compose** (Opcional para levantar el entorno completo)
 - **Servidor Web (Apache, Nginx, etc.)**
 
 ## Instalaciones Necesarias
@@ -132,12 +133,69 @@ Implementa los métodos en el controlador `AuthController.php` para manejar el r
 - **enableMFA()**: Permite a los usuarios habilitar MFA.
 - **verifyMFA()**: Verifica el código OTP enviado por Google Authenticator.
 
-### 9. Configurar el Servidor
+### 9. Levantar el Proyecto con Docker (Opcional)
 
-Para iniciar el servidor de desarrollo, utiliza el comando:
+Si prefieres no instalar manualmente SQL Server y PHP en tu sistema, puedes usar **Docker Compose** para levantar todo el entorno de desarrollo, incluyendo el contenedor de **SQL Server** y **Laravel**.
+
+Crea un archivo `docker-compose.yml` en el directorio raíz del proyecto con el siguiente contenido:
+
+```yaml
+version: '3'
+services:
+  laravel_app:
+    image: php:8.0-fpm
+    container_name: laravel_app
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    ports:
+      - "8000:8000"
+    networks:
+      - laravel
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sqlserver
+    environment:
+      SA_PASSWORD: "YourStrong!Passw0rd"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    networks:
+      - laravel
+
+networks:
+  laravel:
+    driver: bridge
+```
+
+Luego, ejecuta el siguiente comando para levantar los contenedores:
 
 ```bash
-php artisan serve
+docker-compose up -d
+```
+
+Esto creará dos servicios:
+
+1. **laravel_app**: Contiene el entorno de PHP y Laravel.
+2. **sqlserver**: Contiene la base de datos SQL Server lista para usarse.
+
+### 10. Configurar el Servidor
+
+Para iniciar el servidor de desarrollo, utiliza el siguiente comando dentro del contenedor de Laravel:
+
+```bash
+php artisan serve --host=0.0.0.0
+```
+
+Luego accede al proyecto en tu navegador en `http://localhost:8000`.
+
+### 11. Acceso a la Documentación Swagger (Opcional)
+
+Si has instalado Swagger, puedes generar la documentación y acceder a ella en:
+
+```
+http://localhost:8000/api/documentation
 ```
 
 ## Comandos Útiles

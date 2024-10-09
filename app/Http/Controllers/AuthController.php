@@ -7,10 +7,43 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use PragmaRX\Google2FA\Google2FA;
 use Tymon\JWTAuth\Facades\JWTAuth;
-
+/**
+ * @OA\Info(
+ *     title="API REST con JWT y MFA",
+ *     version="1.0.0",
+ *     description="API para la autenticación de usuarios con JWT y autenticación multifactor (MFA)."
+ * )
+ */
 class AuthController extends Controller
 {
     // Método para registrar un nuevo usuario y devolver el token JWT
+    /**
+     * @OA\Post(
+     *     path="/api/register",
+     *     summary="Registrar un nuevo usuario",
+     *     tags={"Autenticación"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name", "email", "password", "password_confirmation"},
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", example="john@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password123"),
+     *             @OA\Property(property="password_confirmation", type="string", format="password", example="password123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Usuario registrado exitosamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="access_token", type="string"),
+     *             @OA\Property(property="token_type", type="string", example="bearer"),
+     *             @OA\Property(property="expires_in", type="integer")
+     *         )
+     *     ),
+     *     @OA\Response(response=422, description="Error de validación")
+     * )
+     */
     public function register(Request $request)
     {
         // Validar los datos
@@ -35,7 +68,32 @@ class AuthController extends Controller
     }
 
     // Método para iniciar sesión
-
+    /**
+     * @OA\Post(
+     *     path="/api/login",
+     *     summary="Iniciar sesión",
+     *     tags={"Autenticación"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email", "password"},
+     *             @OA\Property(property="email", type="string", example="john@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Inicio de sesión exitoso",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="access_token", type="string"),
+     *             @OA\Property(property="mfa_required", type="boolean", example=false),
+     *             @OA\Property(property="token_type", type="string", example="bearer"),
+     *             @OA\Property(property="expires_in", type="integer")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="No autorizado")
+     * )
+     */
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
@@ -62,6 +120,24 @@ class AuthController extends Controller
         return $this->respondWithToken($token);
     }
     // Método para activar MFA desde el perfil del usuario
+    /**
+     * @OA\Post(
+     *     path="/api/enable-mfa",
+     *     summary="Habilitar MFA para un usuario autenticado",
+     *     tags={"Autenticación"},
+     *     security={{ "bearerAuth":{} }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="MFA habilitado exitosamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="MFA enabled successfully"),
+     *             @OA\Property(property="qrCodeUrl", type="string"),
+     *             @OA\Property(property="mfa_enabled", type="boolean", example=true)
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="No autorizado")
+     * )
+     */
     public function enableMFA(Request $request)
     {
         $user = auth()->user();
@@ -88,6 +164,30 @@ class AuthController extends Controller
     }
 
     // Método para verificar MFA
+    /**
+     * @OA\Post(
+     *     path="/api/verify-mfa",
+     *     summary="Verificar el código de MFA",
+     *     tags={"Autenticación"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"otp"},
+     *             @OA\Property(property="otp", type="string", example="123456")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="MFA verificado exitosamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="access_token", type="string"),
+     *             @OA\Property(property="token_type", type="string", example="bearer"),
+     *             @OA\Property(property="expires_in", type="integer")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Código MFA inválido")
+     * )
+     */
     public function verifyMFA(Request $request)
     {
         $request->validate(['otp' => 'required']);
@@ -108,6 +208,22 @@ class AuthController extends Controller
     }
 
     // Método para mostrar el perfil del usuario autenticado
+    /**
+     * @OA\Get(
+     *     path="/api/user-profile",
+     *     summary="Obtener el perfil del usuario autenticado",
+     *     tags={"Usuario"},
+     *     security={{ "bearerAuth":{} }},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Perfil del usuario autenticado",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="user", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="No autorizado")
+     * )
+     */
     public function profile()
     {
         $user = auth('api')->user();

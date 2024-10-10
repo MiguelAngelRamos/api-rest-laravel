@@ -1,4 +1,4 @@
-FROM php:8.0-apache
+FROM php:8.1-fpm
 
 # Instalar dependencias adicionales si es necesario
 RUN apt-get update && apt-get install -y \

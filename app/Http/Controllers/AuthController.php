@@ -252,6 +252,26 @@ class AuthController extends Controller
         ]);
     }
 
+    public function changePassword(Request $request) {
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = auth('api')->user();
+        // verificar la contraseña actual
+        if(!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['error' => 'Contraseña actual incorrecta'], 403);
+        }
+
+        // Cambiar la contraseña
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+        // Invalidar el token JWT actual
+        auth()->logout();
+        return reponse()->json(['message' => 'Por favor inicie sesión con su nueva contraseña'], 200);
+    }
+
     // Método para responder con el token JWT
     protected function respondWithToken($token)
     {

@@ -50,7 +50,21 @@ class AuthController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'regex:/[a-z]/',
+                'regex:/[A-Z]/',
+                'regex:/[0-9]/',
+                'regex:/[@$!%*#?&]/',
+                'confirmed'
+            ],
+        ],
+        [
+            'password.regex' => 'La contraseña debe contener al menos una letra mayúscula, una letra minúscula, un número y un carácter especial (@$!%*#?&)',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres',
+            'password.confirmed' => 'Las contraseñas no coinciden'
         ]);
 
         // Crear nuevo usuario
@@ -91,9 +105,11 @@ class AuthController extends Controller
      *             @OA\Property(property="expires_in", type="integer")
      *         )
      *     ),
-     *     @OA\Response(response=401, description="No autorizado")
+     *     @OA\Response(response=401, description="No autorizado"),
+     *     security={{"bearerAuth": {}}}
      * )
      */
+
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');

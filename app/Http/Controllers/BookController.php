@@ -151,6 +151,16 @@ class BookController extends Controller
         // Si es el propietario, devolver toda la información, incluyendo el campo secreto
         return response()->json($book);
     }
+
+    public function destroy($id) {
+        $user = auth('api')->user();
+        if ($user->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized to delete books'], 403);
+        }
+        $book = Book::findOrFail($id);
+        $book->delete();
+        return response()->json(['message' => 'Book deleted'],200);
+    }
    /* public function show($id)
     {
         $book = Book::findOrFail($id); // Encuentra el libro por su ID

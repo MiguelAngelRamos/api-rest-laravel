@@ -17,6 +17,9 @@ Route::middleware('auth:api')->post('enable-mfa', [AuthController::class, 'enabl
 
 // Ruta para cambiar la contraseña
 Route::middleware('auth:api')->post('change-password', [AuthController::class, 'changePassword']);
+
+// Ruta para cambiar la contraseña
+Route::middleware('auth:api')->post('change-email', [AuthController::class, 'changeEmail']);
 // Ruta para verificar el código MFA
 Route::post('verify-mfa', [AuthController::class, 'verifyMFA']);
 

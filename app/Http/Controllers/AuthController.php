@@ -272,6 +272,27 @@ class AuthController extends Controller
         return reponse()->json(['message' => 'Por favor inicie sesión con su nueva contraseña'], 200);
     }
 
+    public function changeEmail(Request $request) {
+        $request->validate([
+            'new_email' => 'required|email|unique:users,email',
+            'password' => 'required|string',
+        ]);
+
+        $user = auth('api')->user();
+        // verificar la contraseña actual
+        if(!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['error' => 'Contraseña actual incorrecta'], 403);
+        }
+
+        // Cambiar la contraseña
+        $user->email = $request->new_email;
+        $user->save();
+
+        // Invalidar el token JWT actual
+        auth()->logout();
+        return reponse()->json(['message' => 'Por favor inicie sesión con su nuevo email'], 200);
+    }
+
     // Método para responder con el token JWT
     protected function respondWithToken($token)
     {

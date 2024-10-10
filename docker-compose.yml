@@ -1,15 +1,13 @@
 version: '3'
 services:
     laravel_app:
-        build:
-            context: .
-            dockerfile: Dockerfile
+        image: php:8.0-fpm
         container_name: laravel_app
         working_dir: /var/www/html
         volumes:
             - ./:/var/www/html
         ports:
-            - "80:80"
+            - "8000:8000"
         networks:
             - laravel
 
@@ -17,12 +15,14 @@ services:
         image: mcr.microsoft.com/mssql/server:2019-latest
         container_name: sqlserver
         environment:
-            SA_PASSWORD: "YourStrong!Passw0rd"
+            SA_PASSWORD: "control123"  # Aquí asignas la contraseña al usuario SA
             ACCEPT_EULA: "Y"
         ports:
             - "1433:1433"
         networks:
             - laravel
+        volumes:
+            - ./sqlserver/init-scripts:/docker-entrypoint-initdb.d/  # Para los scripts de inicialización
 
 networks:
     laravel:

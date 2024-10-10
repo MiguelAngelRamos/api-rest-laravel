@@ -1,30 +1,43 @@
-# Usar la imagen oficial de PHP 8.3.12 con Apache
-FROM php:8.3.12-apache
+FROM php:8.0-fpm
 
-# Establecer el directorio de trabajo en /var/www/html
-WORKDIR /var/www/html
-
-# Instalar dependencias necesarias
+# Instalar dependencias
 RUN apt-get update && apt-get install -y \
     git \
     curl \
     zip \
-    unzip
+    unzip \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libonig-dev \
+    libxml2-dev \
+    libzip-dev \
+    zip \
+    && docker-php-ext-install pdo_mysql gd mbstring zip
 
 # Instalar Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Copiar los archivos del proyecto al contenedor
-COPY . /var/www/html
+# Instalar Apache
+RUN apt-get update && apt-get install -y apache2 libapache2-mod-fcgid \
+    && a2enmod rewrite \
+    && a2enmod proxy_fcgi setenvif \
+    && a2enconf php8.0-fpm
 
-# Asignar permisos correctos
+# Configurar el directorio de trabajo
+WORKDIR /var/www/html
+
+# Copiar archivos de la aplicación
+COPY . .
+
+# Ajustar permisos
 RUN chown -R www-data:www-data /var/www/html
 
-# Habilitar el módulo de reescritura de Apache
-RUN a2enmod rewrite
+# Configuración del servidor Apache
+COPY ./apache/vhost.conf /etc/apache2/sites-available/000-default.conf
 
-# Exponer el puerto 80 para Apache
+# Exponer los puertos
 EXPOSE 80
 
-# Comando por defecto al ejecutar el contenedor
+# Iniciar Apache en segundo plano y luego PHP-FPM
 CMD ["apache2-foreground"]

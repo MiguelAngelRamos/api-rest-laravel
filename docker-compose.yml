@@ -1,13 +1,13 @@
 version: '3'
 services:
     laravel_app:
-        image: php:8.0-fpm
+        build: .
         container_name: laravel_app
         working_dir: /var/www/html
         volumes:
             - ./:/var/www/html
         ports:
-            - "8000:8000"
+            - "80:80"  # Cambia el mapeo de puerto a 80
         networks:
             - laravel
 
@@ -15,14 +15,14 @@ services:
         image: mcr.microsoft.com/mssql/server:2019-latest
         container_name: sqlserver
         environment:
-            SA_PASSWORD: "P@ssw0rd2024!"  # Aquí asignas la contraseña al usuario SA
+            SA_PASSWORD: "P@ssw0rd2024!"  # Contraseña SA
             ACCEPT_EULA: "Y"
         ports:
             - "1433:1433"
         networks:
             - laravel
         volumes:
-            - ./sqlserver/init-scripts:/docker-entrypoint-initdb.d/  # Para los scripts de inicialización
+            - ./sqlserver/init-scripts:/docker-entrypoint-initdb.d/
 
 networks:
     laravel:

@@ -23,6 +23,9 @@ Route::middleware('jwt')->group(function () {
     Route::get('user-profile', [AuthController::class, 'profile']);
 });
 
+Route::middleware(['jwt', 'role:Admin'])->group(function () {
+    Route::delete('books/{id}', [BookController::class, 'destroy']);  // Eliminar libro (solo Admin)
+});
 Route::middleware('jwt')->group(function () {
     // CRUD de libros
     Route::post('books', [BookController::class, 'store']);      // Crear libro

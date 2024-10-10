@@ -1,6 +1,6 @@
-FROM php:8.0-fpm
+FROM php:8.0-apache
 
-# Instalar dependencias
+# Instalar dependencias adicionales si es necesario
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -12,11 +12,7 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     libzip-dev \
-    apache2 \
-    libapache2-mod-fcgid \
-    && docker-php-ext-install pdo_mysql gd mbstring zip \
-    && a2enmod rewrite \
-    && a2enmod proxy_fcgi setenvif
+    && docker-php-ext-install pdo_mysql gd mbstring zip
 
 # Instalar Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -30,11 +26,8 @@ COPY . .
 # Ajustar permisos
 RUN chown -R www-data:www-data /var/www/html
 
-# Configuración del servidor Apache
-COPY ./apache/vhost.conf /etc/apache2/sites-available/000-default.conf
-
 # Exponer los puertos
 EXPOSE 80
 
-# Iniciar Apache en segundo plano y luego PHP-FPM
+# Iniciar Apache
 CMD ["apache2-foreground"]

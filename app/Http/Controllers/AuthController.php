@@ -67,6 +67,9 @@ class AuthController extends Controller
             'password.confirmed' => 'Las contraseñas no coinciden'
         ]);
 
+        if($request->has('role')) {
+            return response()->json(['error' => 'No puedes establecer tu propio rol'], 422);
+        }
         // Crear nuevo usuario
         $user = User::create([
             'name' => $request->name,

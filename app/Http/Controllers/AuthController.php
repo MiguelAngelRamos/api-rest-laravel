@@ -91,9 +91,11 @@ class AuthController extends Controller
      *             @OA\Property(property="expires_in", type="integer")
      *         )
      *     ),
-     *     @OA\Response(response=401, description="No autorizado")
+     *     @OA\Response(response=401, description="No autorizado"),
+     *     security={{"bearerAuth": {}}}
      * )
      */
+
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');

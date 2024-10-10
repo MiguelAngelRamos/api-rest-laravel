@@ -140,7 +140,12 @@
                     "401": {
                         "description": "No autorizado"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/enable-mfa": {

@@ -12,17 +12,14 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     libzip-dev \
-    zip \
-    && docker-php-ext-install pdo_mysql gd mbstring zip
+    apache2 \
+    libapache2-mod-fcgid \
+    && docker-php-ext-install pdo_mysql gd mbstring zip \
+    && a2enmod rewrite \
+    && a2enmod proxy_fcgi setenvif
 
 # Instalar Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Instalar Apache
-RUN apt-get update && apt-get install -y apache2 libapache2-mod-fcgid \
-    && a2enmod rewrite \
-    && a2enmod proxy_fcgi setenvif \
-    && a2enconf php8.0-fpm
 
 # Configurar el directorio de trabajo
 WORKDIR /var/www/html

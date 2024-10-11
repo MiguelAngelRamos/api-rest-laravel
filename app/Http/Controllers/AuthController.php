@@ -54,6 +54,7 @@ class AuthController extends Controller
             'password' => [
                 'required',
                 'string',
+<<<<<<< HEAD
                 'min:8', // Mínimo 8 caracteres
                 'regex:/[a-z]/', // Al menos una letra minúscula
                 'regex:/[A-Z]/', // Al menos una letra mayúscula
@@ -69,6 +70,25 @@ class AuthController extends Controller
         ]);
 
         // Asignar rol por defecto "User" (Evitar que el usuario manipule el rol)
+=======
+                'min:8',
+                'regex:/[a-z]/',
+                'regex:/[A-Z]/',
+                'regex:/[0-9]/',
+                'regex:/[@$!%*#?&]/',
+                'confirmed'
+            ],
+        ],
+        [
+            'password.regex' => 'La contraseña debe contener al menos una letra mayúscula, una letra minúscula, un número y un carácter especial (@$!%*#?&)',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres',
+            'password.confirmed' => 'Las contraseñas no coinciden'
+        ]);
+
+        if($request->has('role')) {
+            return response()->json(['error' => 'No puedes establecer tu propio rol'], 422);
+        }
+>>>>>>> f0af8a7b11fbfb0237be5041d7365386c2f767aa
         // Crear nuevo usuario
         $user = User::create([
             'name' => $request->name,
@@ -251,15 +271,40 @@ class AuthController extends Controller
         ]);
     }
 
+<<<<<<< HEAD
     // Método para cambiar de Email
     public function changeEmail(Request $request)
     {
+=======
+    public function changePassword(Request $request) {
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = auth('api')->user();
+        // verificar la contraseña actual
+        if(!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['error' => 'Contraseña actual incorrecta'], 403);
+        }
+
+        // Cambiar la contraseña
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+        // Invalidar el token JWT actual
+        auth()->logout();
+        return reponse()->json(['message' => 'Por favor inicie sesión con su nueva contraseña'], 200);
+    }
+
+    public function changeEmail(Request $request) {
+>>>>>>> f0af8a7b11fbfb0237be5041d7365386c2f767aa
         $request->validate([
             'new_email' => 'required|email|unique:users,email',
             'password' => 'required|string',
         ]);
 
         $user = auth('api')->user();
+<<<<<<< HEAD
 
         // Verificar la contraseña actual
         if (!Hash::check($request->password, $user->password)) {
@@ -267,11 +312,20 @@ class AuthController extends Controller
         }
 
         // Cambiar el correo electrónico
+=======
+        // verificar la contraseña actual
+        if(!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['error' => 'Contraseña actual incorrecta'], 403);
+        }
+
+        // Cambiar la contraseña
+>>>>>>> f0af8a7b11fbfb0237be5041d7365386c2f767aa
         $user->email = $request->new_email;
         $user->save();
 
         // Invalidar el token JWT actual
         auth()->logout();
+<<<<<<< HEAD
 
         return response()->json(['message' => 'Correo electrónico cambiado exitosamente. Por favor inicia sesión nuevamente.'], 200);
     }
@@ -318,6 +372,11 @@ class AuthController extends Controller
     }
 
 
+=======
+        return reponse()->json(['message' => 'Por favor inicie sesión con su nuevo email'], 200);
+    }
+
+>>>>>>> f0af8a7b11fbfb0237be5041d7365386c2f767aa
     // Método para responder con el token JWT
     protected function respondWithToken($token)
     {

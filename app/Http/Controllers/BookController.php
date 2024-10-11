@@ -131,4 +131,37 @@ class BookController extends Controller
 
         return response()->json(['message' => 'Libro eliminado'], 200);
     }
+<<<<<<< HEAD
+=======
+
+    public function destroy($id) {
+        $user = auth('api')->user();
+        if ($user->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized to delete books'], 403);
+        }
+        $book = Book::findOrFail($id);
+        $book->delete();
+        return response()->json(['message' => 'Book deleted'],200);
+    }
+   /* public function show($id)
+    {
+        $book = Book::findOrFail($id); // Encuentra el libro por su ID
+
+        // Verificar si el usuario autenticado es el dueño del libro
+        if (auth()->id() !== $book->user_id) {
+            // Si no es el dueño, devolvemos solo la información pública (sin el campo 'secret')
+            return response()->json([
+                'id' => $book->id,
+                'user_id' => $book->user_id,
+                'title' => $book->title,
+                'created_at' => $book->created_at,
+                'updated_at' => $book->updated_at,
+            ]);
+        }
+
+        // Si es el dueño, devolvemos todos los detalles, incluido el campo 'secret'
+        return response()->json($book);
+    }
+  */
+>>>>>>> f0af8a7b11fbfb0237be5041d7365386c2f767aa
 }

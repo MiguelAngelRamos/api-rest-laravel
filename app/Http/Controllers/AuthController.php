@@ -6,7 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use PragmaRX\Google2FA\Google2FA;
-use Tymon\JWTAuth\Facades\JWTAuth;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+
 /**
  * @OA\Info(
  *     title="API REST con JWT y MFA",
@@ -46,13 +47,28 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        // Validar los datos
+        // Validar los datos con reglas adicionales para la contraseña
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => [
+                'required',
+                'string',
+                'min:8', // Mínimo 8 caracteres
+                'regex:/[a-z]/', // Al menos una letra minúscula
+                'regex:/[A-Z]/', // Al menos una letra mayúscula
+                'regex:/[0-9]/', // Al menos un número
+                'regex:/[@$!%*?&]/', // Al menos un carácter especial
+                'confirmed', // Confirmación de contraseña
+            ],
+        ], [
+            // Mensajes personalizados para las reglas de validación de la contraseña
+            'password.regex' => 'La contraseña debe contener al menos una letra mayúscula, una minúscula, un número y un carácter especial (@$!%*?&).',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'password.confirmed' => 'Las contraseñas no coinciden.',
         ]);
 
+        // Asignar rol por defecto "User" (Evitar que el usuario manipule el rol)
         // Crear nuevo usuario
         $user = User::create([
             'name' => $request->name,
@@ -62,10 +78,10 @@ class AuthController extends Controller
 
         // Autenticar el usuario y generar el token JWT
         $token = JWTAuth::fromUser($user);
-
         // Devolver el token JWT al usuario después del registro
         return $this->respondWithToken($token);
     }
+
 
     // Método para iniciar sesión
     /**
@@ -234,6 +250,73 @@ class AuthController extends Controller
             'user' => $user,
         ]);
     }
+
+    // Método para cambiar de Email
+    public function changeEmail(Request $request)
+    {
+        $request->validate([
+            'new_email' => 'required|email|unique:users,email',
+            'password' => 'required|string',
+        ]);
+
+        $user = auth('api')->user();
+
+        // Verificar la contraseña actual
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json(['error' => 'Contraseña incorrecta'], 403);
+        }
+
+        // Cambiar el correo electrónico
+        $user->email = $request->new_email;
+        $user->save();
+
+        // Invalidar el token JWT actual
+        auth()->logout();
+
+        return response()->json(['message' => 'Correo electrónico cambiado exitosamente. Por favor inicia sesión nuevamente.'], 200);
+    }
+
+    // Método para cambiar la contraseña
+    public function changePassword(Request $request)
+    {
+        // Obtener el usuario autenticado a través del token JWT
+        $user = auth()->user();
+
+        // Validar la solicitud
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => [
+                'required',
+                'string',
+                'min:8',
+                'regex:/[a-z]/', // Al menos una letra minúscula
+                'regex:/[A-Z]/', // Al menos una letra mayúscula
+                'regex:/[0-9]/', // Al menos un número
+                'regex:/[@$!%*?&]/', // Al menos un carácter especial
+                'confirmed', // Confirmación de la nueva contraseña
+            ]
+        ], [
+            // Mensajes personalizados de validación
+            'new_password.regex' => 'La contraseña debe contener al menos una letra mayúscula, una minúscula, un número y un carácter especial (@$!%*?&).',
+            'new_password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'new_password.confirmed' => 'Las contraseñas no coinciden.',
+        ]);
+
+        // Verificar que la contraseña actual es correcta
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['error' => 'La contraseña actual no es correcta'], 400);
+        }
+
+        // Actualizar la contraseña
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        // Forzar al usuario a volver a iniciar sesión
+        auth()->logout();
+
+        return response()->json(['message' => 'Contraseña actualizada exitosamente. Por favor, inicia sesión nuevamente.']);
+    }
+
 
     // Método para responder con el token JWT
     protected function respondWithToken($token)

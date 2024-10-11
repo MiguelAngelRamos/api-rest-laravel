@@ -69,8 +69,6 @@ class AuthController extends Controller
         ]);
 
         // Asignar rol por defecto "User" (Evitar que el usuario manipule el rol)
-
-
         // Crear nuevo usuario
         $user = User::create([
             'name' => $request->name,
@@ -80,7 +78,6 @@ class AuthController extends Controller
 
         // Autenticar el usuario y generar el token JWT
         $token = JWTAuth::fromUser($user);
-
         // Devolver el token JWT al usuario después del registro
         return $this->respondWithToken($token);
     }
